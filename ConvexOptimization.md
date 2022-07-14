@@ -179,3 +179,29 @@ $R^n$空间中选择$v_0...v_k$共k+1个点。$v_1-v_0,...,v_k-v_0$线性无关�
 **缩放**和**移位**是保持凸性的：$\alpha S = \{\alpha x| x\in S\}, S+\alpha =\{x+\alpha|x\in S\}$
 
 > 当矩阵把你搞晕了，就把矩阵想象成标量（标量是一维矩阵）。
+
+## Lecture 8
+
+**透视函数**(Perspective function):
+$P: R^{n+1}\rarr R^n, dom P = R^n\times R_{++}$  
+$P(z,t) = {a\over t}, z\in R^n, t\in R_{++}$
+
+- 所谓透视就是降维
+
+> 透视函数讲的是，将n维向量z和1个正数t降维，即将t除以前n维的component后，将t去掉。
+> 几何上是，将n+1维的凸集，透过原点投射到$x_{n+1}=-1$这条直线上，所得到的的集合仍是凸集。
+
+考虑$R^{n+1}$向线段，$x=(\tild{x},x_{n+1}), y=(\tild{y},y_{n+1}),\tild{x}\in R^n, x_{n+1}\in R_{++},\tild{y}\in R^n, y_{n+1}\in R_{++},$，对于$\theta \geq 0$，线段为$\theta x+ (1-\theta)y$  
+要求证明线段经过透视函数变换后仍然是线段。
+证明：$x\stackrel{P}{\rarr} P(x),y\stackrel{P}{\rarr} P(y)$
+$P(\thetax+(1-\theta)y) = {\theta \tild{x}+(1-\theta)\tild{y}\over \theta x_{n+1} + (1-\theta)y_{n+1}} = {\theta x_{n+1}\over \thetax_{n+1}+(1-\theta)y_{n+1}}{\tild{x}\over x_{n+1}} + {(1-\theta)y_{n+1}\over {\theta x_{n+1}}+(1-\theta)y_{n+1}}{\tild{y}\over y_{n+1}}$
+> 上式表达了一个线段到另一个线段的一一映射。
+> 透视函数的逆映射，也能保证凸性。
+
+**线性分数函数**:
+$g: R^n\rarr R^{n+1}$为仿射映射。
+$g(x) = \begin{matrix} A\\ c^T \end{matrix}x + \begin{matrix}b\\ d \end{matrix},A\in R^{m\times n}, b\in R^m, c \in R^n, d\in R$
+$P: R^{m+1}\rarr R^m$
+$f: R^n\rarr R^m = P·g$
+$f(x) = {Ax+b\over c^Tx+d}, dom f = \{x|c^Tx + d \geq 0\}$
+> 线性分数函数是个重要的函数，它自身是一个非线性函数，一个凸集经过线性分数函数变换后，仍然是凸集。
