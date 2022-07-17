@@ -248,10 +248,54 @@ $\forall x \in dom f, \forall v, g(t) = f(x+tv)$为凸，$dom g = \{t| x+tv \in 
 
 定义四：
 **二阶条件**
-若$f:R^n\rarr R$二阶可微，则f为凸函数等价于dom f为凸：$D^2f(x)\geq 0$, \forall x \in dom f
+若$f:R^n\rarr R$二阶可微，则f为凸函数等价于$dom f$为凸：$D^2f(x)\geq 0$, $\forall x \in dom f$
 
 > 二阶微分矩阵角Hessain矩阵。
 > 分析一个函数是否是凸函数，用的最多的定义。
 
 # lecture 11
+
+通过二阶条件，讨论指数函数、幂函数、绝对值的幂函数、对数函数的凹凸性。
+
+**负熵**：$f(x) = xlogx,x\in R_{++}$
+$(xlogx)^{''}={1\over x}\geq 0$
+
+**范数**：$R^n$空间的范数$P(x), x\in R^n$。范数就是满足以下三个性质的数：
+1. $P(ax) = |a|P(x)$
+2. $P(x+y) \leq P(x) + P(y)$
+3. $P(x) = 0 等价于 x= 0$
+> 范数是从向量空间$R^n$到实数空间$R$的函数，是向量的距离概念。
+> 范数是个凸函数。
+
+**极大值函数**：
+$
+f(x) = max\{x_1,x_2,...,x_n\}, x\in R^n.
+\forall x,y \in R^n, \forall 0\leq \theta \leq 1
+f(\theta x+(1-\theta)y) = max\{\theta x_i + (1-\theta)y_i, i=1,...,n\} \leq \theta max\{x_i, i=1,...n\} + \{(1-\theta)max\{y_i,...,y_n \} \}
+ = \theta f(x) + (1-\theta)f(y)$
+
+> 极大值函数是凸函数。极大极小问题或极小极大问题，即极小化一个极大值函数，是计算机领域经常出现的问题。$min max f(x,y)$
+> 虽然这是个凸函数，但不可导。为了解决这个问题，用解析函数（log-sum-up）逼近。
+
+**log-sum-up**: $f(x) = log(e^{x_1}+...+e^{x_n}), x\in R^n$,
+$max \{x_1,...,x_n\} \leq f(x) \leq max\{x_1,...,x_n\}+log n$
+
+# Lecture 12
+
+证明log-sum-up函数是凸函数。
+
+- 三角不等式：看到范数想到它。
+- Cachy-Schwartz不等式：看到平方想到它。
+
+- 算数平均：$f(x) = {x_1·...·x_n\over n}$
+- 几何平均：$f(x) = (x_1·...·x_n)^{1\over n}，x\in R^n_{++}$
+
+证明行列式的对数函数log det|A|是凹函数。
+
+接下来讲，凸函数在什么操作下仍然是凸函数：
+1. 非负加权和：$f_1,...,f_m$为凸，则对于任意的$m_i\geq 0, \forall i$,有$f=\sum\limits_{i=1}^m{w_if_i}$为凸。
+2. 若$f(x,y)$，对任意$y\in A, f(x,y)$均为凸函数。设$w(y)\geq 0,\forall y \in A, g(x) = \int\limits_{y\in A}w(y)f(x,y)dy$为凸。
+3. 放射映射后保持凸性。$f:R^n\rarr R, A\in R^{n\times m}, b\in R^n,g(x) = f(Ax+b), dom g = \{x|Ax+b\in dom f\}$.
+4. 两个函数的极大值函数为凸。$f_1,f_2$为凸，定义$f(x) = max\{f_1(x),f_2(x)\}, dom f= domf_1\cap dom f_2$
+5. 无限个凸函数的极大值为凸。f(x,y)对于x为凸，\forall \in A, g = \sup\limits_{y\in A} f(x,y).
 
