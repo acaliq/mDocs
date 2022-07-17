@@ -205,3 +205,53 @@ $P: R^{m+1}\rarr R^m$
 $f: R^n\rarr R^m = P·g$
 $f(x) = {Ax+b\over c^Tx+d}, dom f = \{x|c^Tx + d \geq 0\}$
 > 线性分数函数是个重要的函数，它自身是一个非线性函数，一个凸集经过线性分数函数变换后，仍然是凸集。
+
+## lecture 9 凸函数的扩展
+
+$f:R^n\rarr R$为凸，$dom f = c \subseteq R^n$
+$\tilde{f} = \begin{cases}
+    f(x) & x \in dom f\\
+    +\infty  & x \notin dom f
+\end{cases} $
+$\tilde{f}: R^n \rarr R, dom \tilde{f} = R^n$
+> 经过这样扩展定义域的一个函数，仍然是凸函数
+
+示性函数仍然是凸函数。
+$I_C(x) = \begin{cases}
+    +\infty & x \notin c
+    0 x \in c
+\end{cases}$
+
+**一阶条件**
+设$f:R^n\rarr R$可微，即梯度Df在 dom f上均存在，则f为凸等价于：
+1. dom f为凸
+2. $f(y) \geq f(x) + Df^T(x)(y-x), \forall x,y \in dom f$
+> 所谓一阶条件，即如果一个函数的一阶导数存在，那么凸函数有上述等价的定义。
+> 和经典凸函数定义相比，经验定义从上面理解凸性，而一阶条件从下面（切线）去理解这个事情。
+> 这是凸函数最重要的性质，因为这个不等式与优化问题密切相关。
+
+# lecture 10 凸函数的四个定义
+
+定义一：
+$f:^n \rarr R$为凸，等价于dom f 为凸。
+$\forall y \in dom f, 0\leq \theta \leq 1$有$f(\theta x + (1-\theta)y)\leq \theta f(x)+ (1-\theta) f(y)$
+> 这个定义最一般，但对于高维用起来不是很方便。
+定义二：
+$\forall x \in dom f, \forall v, g(t) = f(x+tv)$为凸，$dom g = \{t| x+tv \in dom f\}$
+> 这个定义将高维降到一维。
+定义三：
+若f可微，$\forall x, y \in dom f, f(y) \geq f(x)+ Df^T(x)(y-x)$
+
+> 上节课我们讲了一维的一阶条件：$g:R\rarr R$可微，f为凸等价于$dom f$为凸。$\forall x, y \in dom f$
+
+> 对于高维的证明...
+
+定义四：
+**二阶条件**
+若$f:R^n\rarr R$二阶可微，则f为凸函数等价于dom f为凸：$D^2f(x)\geq 0$, \forall x \in dom f
+
+> 二阶微分矩阵角Hessain矩阵。
+> 分析一个函数是否是凸函数，用的最多的定义。
+
+# lecture 11
+
