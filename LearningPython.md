@@ -1488,16 +1488,16 @@ reload会在原位置修改模块对象。
 2. dir0是容器文件，不需要__init__.py文件，如果有的话，也会被忽略
 3. dir0必须列在模块搜索路径sys.path列表中
 
-__init__.py可以包含Python程序代码，就像普通模块文件那样。它们的名字很特殊是因为它们的代码将在Python第一次导入一个路径的时候被自动运行，所以它们也被用作执行包的初始化步骤的钩子。
+**init**.py可以包含Python程序代码，就像普通模块文件那样。它们的名字很特殊是因为它们的代码将在Python第一次导入一个路径的时候被自动运行，所以它们也被用作执行包的初始化步骤的钩子。
 
-__init__.py文件可以用作包初始化的钩子，将目录声明称一个Python包，替目录生成一个模块命名空间以及在目录导入时实现from *语句行为的角色。
+**init**.py文件可以用作包初始化的钩子，将目录声明称一个Python包，替目录生成一个模块命名空间以及在目录导入时实现from *语句行为的角色。
 
 - 包的初始化。Python在首次导入某个目录时，会自动执行该目录下__init__.py文件中的所有程序代码。
 - 模块使用的声明。报的__init__.py文件从某种程度上讲就是声明一个路径是Python包。
-- 模块命名空间的初始化。在包导入的模型中，你脚本中的目录路径在导入后会变成真实的嵌套对象路径。__init__.py文件为目录创建的模块对象提供了命名空间。
-- from *语句的行为。可以在__init__.py文件内定义__all__列表来规定目录以from* 语句形式导入时，需要导出什么。在__init__.py文件中，__all__列表是指当包（目录）名称使用from*的时候，应该导入的子模块的名称清单。如果没有设定__all__,from*语句不会自动加载嵌套于该目录内的子模块；取而代之的是，只加载该目录的__init__.py文件中赋值语句定义的名称，包括该文件程序代码显式导入的任何子模块。
+- 模块命名空间的初始化。在包导入的模型中，你脚本中的目录路径在导入后会变成真实的嵌套对象路径。**init**.py文件为目录创建的模块对象提供了命名空间。
+- from *语句的行为。可以在__init__.py文件内定义__all__列表来规定目录以from* 语句形式导入时，需要导出什么。在__init__.py文件中，**all__列表是指当包（目录）名称使用from*的时候，应该导入的子模块的名称清单。如果没有设定__all**,from*语句不会自动加载嵌套于该目录内的子模块；取而代之的是，只加载该目录的__init__.py文件中赋值语句定义的名称，包括该文件程序代码显式导入的任何子模块。
 
-__init__.py是当导入初次遍历一个包目录时所运行代码的文件，而类__init__构造函数方法是在创建一个实例对象时才调用的函数。
+**init**.py是当导入初次遍历一个包目录时所运行代码的文件，而类__init__构造函数方法是在创建一个实例对象时才调用的函数。
 
 包让导入包含了更多信息，并可以作为组织工具来简化模块的搜索路径，同时还可以解决模糊性。包导入也可以大幅简化PYTHONPATH和.pth文件搜索路径设置。实际上，如果对所有跨目录的导入都使用包导入，并且让这些包导入都相对于一个共同的根目录，以及把所有Python程序代码都存在其中，那么在搜索路径上就只需一个单独的接入点：通用的根目录。最后，包导入能让你想导入的文件更明确，从而解决模糊性。同时还能解决同一模块在多处被导入所引发的冲突。
 
@@ -1533,8 +1533,8 @@ Python搜索文件是现行的，总是从左到右扫描。
 
 你也可以通过在模块顶层把变量名的字符串列表赋值给变量__all__，从而达到类似于_x命名惯例的隐藏效果。
 
-每个模块都有一个名为__name__的内置属性。如果文件作为顶层程序文件执行，在启动时__name__就会被设置为字符串"__main__"。如果文件被导入，__name__就会被设成客户程序所了解的模块名。结果就是，模块可以检测自己的__name__来判断它是在执行还是在导入。
->>> if __name__ == '__main__':
+每个模块都有一个名为__name__的内置属性。如果文件作为顶层程序文件执行，在启动时__name__就会被设置为字符串"**main**"。如果文件被导入，__name__就会被设成客户程序所了解的模块名。结果就是，模块可以检测自己的__name__来判断它是在执行还是在导入。
+>>> if **name** == '**main**':
       somefunc()
 
 Python程序本身也能够修改搜索路径，也就是搜索内置的sys.path列表。
@@ -1547,7 +1547,7 @@ Python程序本身也能够修改搜索路径，也就是搜索内置的sys.path
 下列所有表达式都会得到相同的属性和对象：
 
 1. M.name
-2. M.__dict__['name']
+2. M.**dict**['name']
 3. sys.modules['M'].name
 4. getattr(M,'name')
 通过像这样暴露模块内部，Python能让你构建关于程序的程序。
@@ -1653,7 +1653,7 @@ Python类的主要特性：
 
 重载运算符主要概念的概要：
 
-1. 以双下划线命名的方法（__x__）是特殊钩子。在Python类中，实现运算法重载通过提供特殊命名的方法来拦截运算。Python语言在每种运算和特殊命名的方法之间，定义了固定不变的映射关系。
+1. 以双下划线命名的方法（**x**）是特殊钩子。在Python类中，实现运算法重载通过提供特殊命名的方法来拦截运算。Python语言在每种运算和特殊命名的方法之间，定义了固定不变的映射关系。
 2. 当实例出现在内置运算中时，这类方法会自动被调用。例如，实例对象继承了一个__add__方法，那么当对象出现在+表达式内时，该方法就会被调用。而该方法的返回值将作为相应表达式的结果。
 3. 类可以重载绝大多数内置类型运算。Python中有几十种特殊运算符重载的方法的名称，几乎可截获并实现内置类型的所有运算。
 4. 默认的运算符重载方法既不存在，也不需要。如果类没有定义或继承运算符重载方法，那么类的实例将不能支持相应的运算。
@@ -1665,14 +1665,14 @@ Python类的主要特性：
 命名空间对象的属性通常都是以字典的形式实现的，而类继承树只是互相连接的字典而已。
 
 __dict__属性是大多数基于类的对象的命名空间字典。这样一个属性既可以通过字典索引又可以通过属性记号访问，但是仅当其出现在所需的对象上。属性记号启动了继承搜索，但是索引只在单独的该对象中查看:
->>> x.name, x.__dict__['name']
+>>> x.name, x.**dict**['name']
 ('Sue','Sue')
->>> x.__dict__['age']
+>>> x.**dict**['age']
 KeyError:'age'
 
-每个实例都有一个Python帮我们创建好的指向其类的链接，__class__:
->>> x.__class__
-<class '__main__.rec'>
+每个实例都有一个Python帮我们创建好的指向其类的链接，**class**:
+>>> x.**class**
+<class '**main**.rec'>
 
 类有一个__bases__属性，它是其父类对象引用的元组：
 >>> rec.*bases*_
@@ -1690,7 +1690,7 @@ Python的类系统，其实很大程度上就是在一个对象树中查找属�
 
 创建构造函数
 >>> class Person:
-      def __init__(self,name,job=None,pay=0):
+      def **init**(self,name,job=None,pay=0):
         self.name=name
         self.job=job
         self.pay=pay
@@ -1702,7 +1702,7 @@ Python的类系统，其实很大程度上就是在一个对象树中查找属�
 封装的思想就是把操作逻辑包装到接口之后，这样每次操作在我们的程序里只会编写一次。
 
 >>> class Person:
-      def __init__(self, name,job=None,pay=0)
+      def **init**(self, name,job=None,pay=0)
         self.name=name
         self.job=job
         self.pay=pay
@@ -1712,13 +1712,13 @@ Python的类系统，其实很大程度上就是在一个对象树中查找属�
 3. 运算符重载
 
 >>> class Person:
-      def __init__(self, name,job=None,pay=0)
+      def **init**(self, name,job=None,pay=0)
         self.name=name
         self.job=job
         self.pay=pay
       def giveRaise(self, percent):
         self.pay = int(self.pay*(1+percent))
-      def __repr__(self):
+      def **repr**(self):
         return '[Person: %s, %s]' % (self.name, self.pay)
 
 4. 通过编写子类定制行为
@@ -1734,13 +1734,13 @@ Python的类系统，其实很大程度上就是在一个对象树中查找属�
 5. 定制构造函数
 
 >>> class Manager(Person):
-      def __init__(self,name,pay):
-        Person.__init__(self,name,'mgr',pay)
+      def **init**(self,name,pay):
+        Person.**init**(self,name,'mgr',pay)
       def giveRaise(self, percent, bonus=.10):
         Person.giveRaise(self,percent + bonus)
-      def __getattr__(self, attr):
+      def **getattr**(self, attr):
         return getattr(self.person, attr)
-      def __repr__(self):
+      def **repr**(self):
         return str(self.person)
 
 - OOP机制的重要概念：
@@ -1759,18 +1759,20 @@ OOP强大的原因之一是，它能够对真实世界中的实体进行建模�
 > 内省instraspection，即自我检查。Python的内省工具是程序自带的默认属性。
 
 Python的内省工具允许我们访问对象实现的内部机制的一些特殊属性和函数。有两个钩子：
-1. 内置的instance.__class__属性提供了一个从实例到创建它的类的链接。同时类有一个__name__，一个__bases__序列来提供父类的访问。
+
+1. 内置的instance.**class__属性提供了一个从实例到创建它的类的链接。同时类有一个__name**，一个__bases__序列来提供父类的访问。
 2. 内置的object.__dict__属性提供了一个字典，将所有命名空间对象（包括模块、类和实例）中的属性都存储为键/值对。
 
 __repr__采用通用的内省工具来显示重载，它将会对任何实例有效：
->>> def __repr__(self):
-      return '[%s:%s]' % (self.__class__.__name__,self.gatherAttrs())
+>>> def **repr**(self):
+      return '[%s:%s]' % (self.**class**.**name**,self.gatherAttrs())
 
 因为这个类使用__repr__而不是__str__，所以它在所有的场景下都能使用。
 
 7. 把对象存储到数据库中
 
 对象持久化通过3个标准的库模块实现：
+
 1. pickle：实现任意Python对象与字节串之间的序列化和解序列化。
 2. dbm：实现一个通过键访问的文件系统，以存储字节串。
 3. shelve：使用以上两个模块按照键把Python对象存储字节串。
@@ -1805,6 +1807,7 @@ shelve模块提供了一层额外的结构，让你能按照键来存储pickle�
 对实例的属性进行赋值运算会在该实例内创建或修改名称，而不是在共享的类中。
 
 下面两个方法是等价的：
+
 - instance.method(args...)
 - class.method(instance,args...)
 
@@ -1813,6 +1816,7 @@ shelve模块提供了一层额外的结构，让你能按照键来存储pickle�
 class语句创建的命名空间的重点就是支持名称继承。在Python中，当对对象进行点号运算时就会触发继承，而且涉及了搜索属性定义树，即在一个或多个相互链接的命名空间中搜索。每次使用object.attr形式的表达式时，这里的object代表实例或类对象，Python会自底向上搜索命名空间树，先从该对象开始，寻找所能找到的第一个attr。这包括在方法中对self属性的引用。由于树中较低处的定义会屏蔽较高处的定义，因此继承成为定制化的基础。
 
 属性树的构造：
+
 1. 实例属性是由对方法内的self属性进行赋值运算而产生的。
 2. 类属性是通过class语句内的赋值语句创建的。
 3. 父类的连接是通过class语句首行的括号内列出的类而产生的。
@@ -1823,6 +1827,7 @@ class语句创建的命名空间的重点就是支持名称继承。在Python中
 类与模块一样也有特殊的__name__属性。默认是类头部行中的类名称字符串。
 
 名称解析规则：
+
 1. 无点号运算的名称（例如X）对应于作用域。
    赋值语句（X=value），在当前局部作用域内创建或改变名称X，除非使用global把它声明为全局的。
    引用（X），按照LEGB规则，先在当前作用域中搜索X，然后再所有外层函数中，再到当前全局作用域中，最后在内置作用域中。外层的类不会被搜索：相反，类名称是作为对象属性被访问。
@@ -1838,7 +1843,7 @@ class语句创建的命名空间的重点就是支持名称继承。在Python中
 模块的命名空间具体被实现为字典，并将其暴露为内置的__dict__属性。类对象和实例对象也是如此，属性的点号操作在内部基本上就是字典的索引运算，而属性继承其实就是搜索链接的字典而已。实际上，在Python内部，实例对象和类对象就是相互之间带有链接的字典而已。
 
 因为属性在Python内部实际上是字典键，所以其实有两种方式可以访问并对其进行赋值，即通过点号运算或者键索引运算：
->>> x.data1,x.__dict__['data1']
+>>> x.data1,x.**dict**['data1']
 ('spam','spam')
 不过这种等效关系只适用于实际中附加在实例上的属性。因为属性的点号运算也会执行继承搜索，所以可以访问命名空间字典无法访问的继承属性。
 
@@ -1847,6 +1852,7 @@ class语句创建的命名空间的重点就是支持名称继承。在Python中
 **运算符重载**只是意味着在某个类的方法中拦截内置的操作——当类的实例出现在内置操作中时，Python会自动调用你的方法，并且你的方法的返回值会作为相应操作的结果。
 
 重载背后的关键概念：
+
 1. 运算符重载让类拦截常规的Python操作。
 2. 类可以重载所有Python表达式运算符。
 3. 类也可以重载打印、函数调用、属性访问等内置运算。
@@ -1855,9 +1861,9 @@ class语句创建的命名空间的重点就是支持名称继承。在Python中
 
 一个简单的重载例子：
 >>> class Number:
-      def __init__(self,start):
+      def **init**(self,start):
         self.data = start
-      def __sub__(self, other):
+      def **sub**(self, other):
         return Number(self.data - other)
 >>> from number import Number
     X = Number(5)
@@ -1868,40 +1874,41 @@ class语句创建的命名空间的重点就是支持名称继承。在Python中
 从技术角度来说，在一个实例被创建的过程中，首先出发的是__new__方法。这一方法将创建并返回一个新的实例对象，并传入__init__函数以供初始化。由于__new__方法拥有一个内置的实现，并且在重定义之后担任的角色非常有限，因此几乎所有的Python类通过定义__init__方法来初始化。
 
 ## 常见运算符重载方法
+
 方法名      实现功能      触发调用的形式
-__init__    构造函数      对象创建：X=Class(args)
-__del__     析构函数      X对象回收
-__add__     "+"运算符     X+Y,X+=Y（如果存在__iadd__，则"+="使用重载后的__iadd__）
-__or__      "|"运算符（按位或） X|Y,X|=Y（如果存在__ior__，则"|="使用重载后的__ior__）
-__repr__,__str__  打印、转换  print(X),repr(X),str(X)
-__call__    函数调用      X(*args,**kargs)
-__getattr__ 属性访问      X.undfined
-__setattr__ 属性赋值      X.any = value
-__delattr__ 属性删除      del X.any
-__getattribute__  属性访问  X.any
-__getitem__ 索引、分片、迭代  X[key]、X[i:j]、没有重载__iter__方法的for循环和其他迭代操作
-__setitem__ 索引赋值和分片赋值  X[key] = value、X[i:j] = iterable
-__delitem__ 索引删除和分片删除  del X[key]、del X[i:j]
-__len__     长度        len(X)、没有重载__bool__方法的真值测试
-__bool__    布尔测试      bool(X)、真值测试
-__lt__,__gt__, 比较        X<Y,X>Y,X<=Y,X>=Y,X==Y,X!=Y
-__le__,__ge__,
-__eq__,__ne__
-__radd__    右侧“+”操作   Other+X
-__iadd__    原位置"+="操作  X+=Y
-__iter__,__next__   迭代上下文  I=iter(X),next(I);for循环、没有重载__contains__方法的in操作、所有的推导表达式、map(F,x)、其他
-__contains__  成员关系测试    item in X
-__index__   整数值转换    hex(X),bin(X),oct(X),O[X],O[X:]
-__enter__,__exit__  上下文管理器    with obj as var:
-__get__,__set__,__delete__   描述符属性    X.attr,X.attr = value, del X.attr
-__new__     创建    在__init__之前的对象创建
+**init**    构造函数      对象创建：X=Class(args)
+**del**     析构函数      X对象回收
+**add**     "+"运算符     X+Y,X+=Y（如果存在__iadd__，则"+="使用重载后的__iadd__）
+**or**      "|"运算符（按位或） X|Y,X|=Y（如果存在__ior__，则"|="使用重载后的__ior__）
+**repr**,**str**  打印、转换  print(X),repr(X),str(X)
+**call**    函数调用      X(*args,**kargs)
+**getattr** 属性访问      X.undfined
+**setattr** 属性赋值      X.any = value
+**delattr** 属性删除      del X.any
+**getattribute**  属性访问  X.any
+**getitem** 索引、分片、迭代  X[key]、X[i:j]、没有重载__iter__方法的for循环和其他迭代操作
+**setitem** 索引赋值和分片赋值  X[key] = value、X[i:j] = iterable
+**delitem** 索引删除和分片删除  del X[key]、del X[i:j]
+**len**     长度        len(X)、没有重载__bool__方法的真值测试
+**bool**    布尔测试      bool(X)、真值测试
+**lt**,**gt**, 比较        X<Y,X>Y,X<=Y,X>=Y,X==Y,X!=Y
+**le**,**ge**,
+**eq**,**ne**
+**radd**    右侧“+”操作   Other+X
+**iadd**    原位置"+="操作  X+=Y
+**iter**,**next**   迭代上下文  I=iter(X),next(I);for循环、没有重载__contains__方法的in操作、所有的推导表达式、map(F,x)、其他
+**contains**  成员关系测试    item in X
+**index**   整数值转换    hex(X),bin(X),oct(X),O[X],O[X:]
+**enter**,**exit**  上下文管理器    with obj as var:
+**get**,**set**,**delete**   描述符属性    X.attr,X.attr = value, del X.attr
+**new**     创建    在__init__之前的对象创建
 
 举点例子：
 
 拦截分片
 >>> class Indexer:
       data = [5,6,7]
-      def __getitem__(self,index):
+      def **getitem**(self,index):
         print('getitem:', index)
         return self.data[index]
 >>> x = Indexer()
@@ -1911,15 +1918,15 @@ getitem:0
 
 当我们用类编写用户定义的可迭代对象时，由我们自己来决定是支持单个还是多个活跃迭代。要达到多个迭代器的效果，__iter__只需迭代器定义一个新的状态对象，而不是在每次迭代器请求中都返回self。
 >>> class SkipObject:
-    def __init__(self, wrapped):
+    def **init**(self, wrapped):
       self.wrapped = wrapped
-      def __iter__(self):
+      def **iter**(self):
         return SkipIterator(self.wrapped) # new iterator each time
 >>> class SkipIterator:
-      def __init__(self, wrapped):
+      def **init**(self, wrapped):
         self.wrapped = wrapped
         self.offset = 0
-      def __next__(self):
+      def **next**(self):
         if self.offset >= len(self.wrapped):
           raise StopIteration
         else:
@@ -1932,7 +1939,7 @@ getitem:0
 
 __getattr__方法拦截属性引用。当你用一个未定义的属性名称字符串对一个实例对象做点号运算时，它就会被调用。如果Python通过其继承树搜索过程找到这个属性，那么该方法就不会被调用。
 
-__setattr__会捕捉所有的属性赋值。准确来说，__setattr__会拦截对self的直接属性的赋值，但不会拦截对self的直接属性的修改，因此对__dict__的修改不会再次调用__setattr__。
+__setattr__会捕捉所有的属性赋值。准确来说，**setattr__会拦截对self的直接属性的赋值，但不会拦截对self的直接属性的修改，因此对__dict__的修改不会再次调用__setattr**。
 
 捕获属性引用和赋值通常是很有用的技术。它支持委托：一种允许控制器对象包装内嵌对象，添加新的行为，并将其他操作传回内嵌对象的设计方案。
 
@@ -1942,3 +1949,82 @@ Python提供了两种显示方法来为不同的观众支持不同的现实。__
 
 # 类的设计
 
+封装意味着在Python中打包，也就是把实现的细节隐藏在对象接口之后。
+
+**继承**是一种指明集合成员关系的方式：类定义了一个属性集合，可由更具体的集合（如子类）继承和定制。
+>>> class Employee:
+      def **init**(self,name,salary = 0):
+        self.name = name
+        self.salary = salary
+>>> class Chef(Employee):
+      def **init**(self,name):
+        Employee.**init**(self,name,50000)
+
+**组合**涉及把其他对象嵌入容器对象内，并促使其实现容器方法。组合不是集合的成员关系，而是组件，也就是整体的组成部分。
+>>> class Customer:
+      def **init**(self,name):
+        self.name = name
+      def order(self,server):
+        print(self.name,"orders from",server)
+>>> class Oven:
+      def bake(self):
+        print("oven bakes")
+>>> class PizzaShop:
+    def **init**(self):
+      self.oven = Oven()
+    def order(self,name):
+      customer = Customer(name)
+
+**托管**是指控制器对象内嵌其他对象，并把操作请求传递给那些内嵌的对象。托管是组合的一种特殊形式。它使用包装器（有时叫代理）类管理单一的内嵌对象，而包装器类则保留了内嵌对象的多数或全部的接口。
+Python通常使用__getattr__方法钩子来实现委托。
+>>> class Wrapper:
+      def **init**(self,object):
+        self.wrapped = object
+      def **getattr**(self,attrname):
+        print('Trace:'+attrname)
+        return getattr(self.wrapped,attrname)
+>>> x = Wrapper([1,2,3])
+>>> x = x.append(4)
+Trace:append
+>>> x.wrapped
+[1,2,3,4]
+总的效果就是通过Wrapper类内的额外代码来扩充被包装对象的全部接口。
+
+**名称重整**（mangling，相当于扩展），可以使类中的某些名称局部化。重整后的名称有时会被误认为是“私有属性”，但这其实只是一种把类所创建的名称局部化到这个类的方式而已：名称重整并不能够阻止来自类外部代码的访问。
+
+名称重整的工作方式：只有在class语句内部，任意开头有双下划线，但结尾没有双下划线的名称，会自动在前面包围外围类的名称从而进行扩展。例如，Spam类中的__X会被自动扩展成_Spam__X。
+
+伪私有属性解决的主要问题之一就是实例属性的存储方式。Python中所有实例属性最后都会位于类树底部的单个实例对象内，并被那些将该实例作为参数的类级别的方法函数共享。
+
+Python程序员使用单个下划线来编写内部名称（例如_X）。
+
+类的方法在Python中有两种形式：
+
+1. 未绑定（类）方法对象：无self
+   通过对类进行点号运算从而获取类的函数属性，会传回未绑定方法对象。调用该方法时，必须明确提供实例对象作为第一位参数。一个未绑定方法和一个简单函数是相同的。
+2. 绑定（实例）方法对象：self+函数
+   通过实例进行点号运算从而获取类的函数属性，会传回绑定方法对象。Python在绑定方法中自动把实例和函数打包，所以不用传递实例去调用该方法。
+
+有时，基于类的设计需要创建对象，以应对程序编写时不能够预测的情况。工厂设计模式允许这样的延迟方式。
+
+将类作为传入参数以生成其他种类对象的函数，被称为**工厂**。
+>>> def factory(aClass,*pargs,**kargs):
+      return aClass(*pargs,**kargs)
+>>> class Person:
+      def **init**(self,name,job=None):
+        self.name = name
+        self.job = job
+>>> object = factory(Person,"Arthur","King")
+
+这就是你在Python需要编写的唯一工厂函数，它对任意类和任意构造函数参数都有效。
+
+这样的一个工厂可以允许代码与动态配置的对象构造细节相隔绝。
+
+**多继承**，类和它的实例从列出的所有父类中继承名称。
+
+1. 在经典类中，所有情形下的属性搜索始终实行深度优先搜索，直到继承树的顶端，然后从左至右进行。这一顺序称为DFLR(depth first, left to right)。
+2. 在新式类中，属性搜索通常和之前是一样的，但在钻石模型下是以广度优先的方式进行，搜索在向上移动之前沿着继承树的同一级搜索。这一顺序称为MRO(method resolution order)。
+
+多继承的主要缺点是，当相同的方法（或其他属性）名称在不止一个父类中定义时，就会造成冲突。
+
+# 类的高级主题
