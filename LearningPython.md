@@ -2028,3 +2028,974 @@ Python程序员使用单个下划线来编写内部名称（例如_X）。
 多继承的主要缺点是，当相同的方法（或其他属性）名称在不止一个父类中定义时，就会造成冲突。
 
 # 类的高级主题
+
+除了实现新种类的对象以外，类偶尔也用于扩展Python的内置类型的功能，从而支持更特异的数据结构。
+
+1. 通过内嵌方式扩展类型
+
+>>> class Set:
+      def __init__(self, value=[]):
+        self.data = []
+        self.concat(value)
+
+      def intersect(self, other):
+        res = []
+        for x in self.data:
+          if x in other:
+            res.append(x)
+        return Set(res)
+
+      def union(self, other):
+        res = self.data[:]
+        for x in other:
+          if not x in res:
+            res.append(x)
+        return Set(res)
+
+      def concat(self, value):
+        for x in value:
+          if not x in self.data:
+            self.data.append(x)
+
+      def __len__(self): return len(self.data)
+      def __getitem__(self, key): return self.data[key]
+      def __and__(self, other): return self.intersect(other)
+      def __or__(self, other): return self.union(other)
+      def __repr__(self): return "Set:" + repr(self.data)
+      def __iter__(self): return iter(self.data)
+
+>>> x = Set([1,3,5,7])
+    print(x.union(Set([1,4,7])))
+    print(x|Set([1,4,6]))
+
+1. 通过子类扩展类型
+
+所有内置类型都能直接创建子类。
+
+>>> class MyList(list):
+      def __getitem__(self, offset):
+        print('(indexing %s at %s)' % (self, offset))
+        return list.__getitem__(self, offset - 1)
+
+>>> if __name__ == '__main__':
+      print(list('abc'))
+      x = MyList('abc')
+      print(x)
+      print(x[1])
+      x.append('spam');print(x)
+
+类就是类型，类型就是类。
+
+所有类继承自object。
+
+多继承的钻石模型先搜索当前父类右侧的所有其他父类，然后才一路往上搜索至顶端共同的父类，更像广度优先搜索而非深度优先搜索。这种属性搜索顺序称为MRO，可以用__mro__属性来跟踪，它给出了Python在父类中搜索属性的线性顺序的元组。
+
+>>> class A: pass
+    class B(A): pass
+    class C(A): pass
+    class D(B,C): pass
+>>> D.__mro__
+(<class '__main__.D'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.A'>, <class 'object'>)
+
+MRO的核心工作原理：
+- 采用经典类的DFLR查找规则来列出一个实例继承的所有父类，如果一个类被多次访问的话，相应列举所有的出现。
+- 在上一步列出的列表中扫描重复的类，依次删除并保留每个类的最后一次出现。
+
+钻石模型是指：有多于一个父类都指向相同的更高父类的树状模式。
+
+在新式类中，通用实例属性拦截方法__getattr__和__getattribute__不再拦截下以__X__命名的运算符重载方法名调用，也就是说对__X_这一类名称的搜索是从类开始，而非从实例开始。
+
+**slot属性声明**：通过将一系列的字符串属性名称顺序赋值给特殊的__slots__类属性，可以让新式类既限制其实例将会得到的合法属性集，又能够优化内存和速度性能。
+
+为了使用slot，需要在class语句顶层内将字符串名称顺序赋值给特殊变量__slots__:只有__slots__列表内的这些名称可赋值为实例属性。实例属性名在引用前必须被赋值，即使在__slots__中也是。
+
+>>> class limiter(object):
+      __slots__ = ['age','name','job']
+>>> x = limiter()
+>>> x.age
+AttributeError: age
+>>> x.age = 40
+>>> x.age
+40
+>>> x.ape = 1000  # illegal: not in __slots__
+AttributeError: 'limiter' object has no attribute 'ape'
+
+> Python在每个实例中，只保留足够的空间来为每个slot属性存储值，并且在共同的类中存储继承的属性从而管理slot的访问。
+
+slot使用规则：
+- slot名称被实例继承，而名称受管理的空间则被保留在类中。
+- 如果父类没有slot，子类中的slot就没有意义：如果一个子类继承自一个没有__slots__的父类，为父类创建的__dict__实例属性将总是可访问的，这让子类中的__slots__变得基本上没有意义。子类仍旧管理它的slot，但却不能通过任何方法计算它们的值，也不能避免__dict__字典。而避免__dict__又是使用slot的主要原因。
+- 如果在子类中没有相应的slot，父类中的slot就没有意义：相似地，因为一个__slots__声明的意义局限于它所出现的类，所以如果子类没有定义一个__slots__则会创造一个实例__dict__，因而单独在父类中提供一个__slots__基本上就是没有意义的。
+- 重定义让父类的slot变得没有意义：如果一个类定义了父类中相同的slot名称，它的重新定义会根据一般继承的规则隐藏父类中的slot。你只能通过直接从父类获取它的描述符来访问父类定义的slot名称版本。
+- slot会组织类一级的默认名称：因为slot被实现成类一级的描述符，你不能像对普通实例属性那样，去使用同名的类属性来提供默认值：在类中赋值相同的名称会覆盖slot描述符。
+- slot和__dict__：正如前面所示，__slots__既会阻止一个实例的__dict__又会阻止没有列出的名称的赋值，除非这个名称在__dict__中被显式地列出。
+- 只要一个类树中的任何一个类没有定义slot，就会创建一个命名空间字典，从而阻止了内存优化的优势。
+
+**property属性访问器**：一种让新式类定义自动调用方法来访问或者赋值实例属性的方式。
+
+产生property的方式：调用内置函数property，同时传入三个访问器方法（分别用于处理获取、设置和删除操作）以及一个可选的property文档字符串。
+
+最终得到的property对象一般都是在class语句的顶层赋值给一个名称，以及一个我们之后会看到的“@”特殊语法来自动化这一步骤。当这样赋值时，随后作为一个对象属性（例如obj.name），对类property名称本身的访问，就会自动被路由到property调用的一个访问器。
+
+>>> class properties(object):
+      def getage(self):
+        return 40
+        def setage(self, value):
+        print('set age:%s' % value)
+        self._age = value
+      age = property(getage, setage, None, None) # (get,set,del,docs)
+>>> x = properties()
+    x.age
+40
+>>> x.age = 42
+set age: 42
+>>> x._age
+42
+>>> x.age
+40
+>>> x.job = 'trainer'
+'trainer'
+
+## __getattribute__和描述符：属性工具
+
+__getattribute__运算符重载方法可以让类拦截所有属性的引用，而不局限于未定义的引用。
+
+描述符是带有__get__和__set__方法的类，被赋值给类属性并且被实例继承，并且能拦截对特定属性的读取和写入访问。
+>>> calss AgeDesc(object):
+      def __get__(self,instance,owner):return 40
+      def __set__(self,instnace,value):instance._age = value
+>>> class descriptors(object):
+      age = AgeDesc()
+>>> x = descriptors()
+    x = x.age
+40
+>>> x.age = 42
+>>> x._age
+42
+
+**类方法**是类的一种方法，传入给它们的第一位参数是一个类对象而不是一个实例对象，不管是通过一个实例或一个类调用它们。
+
+Python现在支持带有不同参数协议的三种类相关方法：
+1. 实例方法，传入一个self实例对象（默认方式）
+2. 静态方法，不传入额外的对象（通过staticmethod）
+3. 类方法，传入一个类对象（通过classmethod，并在元类中是默认的）
+
+为了制定这样的方法，类需要调用内置函数staticmethod和classmethod：
+>>> calss Methods:
+      def imeth(self,x):
+        print([self,x])
+
+      def smeth(x):
+        print([x])
+
+      def cmeth(cls,x):
+        print([cls, x])
+
+      smeth = staticmethod(smeth)
+      cmeth = classmethod(cmeth)
+
+>>> obj = Methods()
+>>> obj.imeth(1)
+[<bothmethods.Mehtods object at 0x000000aA14543423>,1]
+>>> Mehtods.imeth(obj,2)
+[<bothmethods.Methods object at 0x00000002A2342323>,2]
+>>> Methods.smeth(3)
+[3]
+>>> obj.smeth(4)
+[4]
+>>> Methods.cmeth(5)
+[<class 'bothmethods.Methods'>, 5]
+>>> obj.cmeth(6)
+[<class 'bothmethods.Methods'>, 6]
+
+## 装饰器和元类
+
+“装饰”只是一种在函数和类定义时，使用显示语法运行额外处理步骤的方式。**函数装饰器**通过把简单函数和类方法包在一层额外的逻辑实现中，因而也常被成为一个元函数（管理另一函数的函数）。**类装饰器**为类添加管理全体对象和其接口的支持。
+
+从语法上讲，函数装饰器可以被看作是它后边跟着的函数的运行时声明。函数装饰器使用起来只需单独一行，就写在定义函数或方法的def语句之前。
+>>> class C:
+      @staticmethod
+      def meth():
+      ...
+从内部看，该语法和下面的写法有相同效果，也就是把函数传递给装饰器，并再赋值回最初的函数名：
+>>> class C:
+      def meth()
+      ...
+      meth = staticmethod(meth)
+
+记住，staticmethod和它这里的装饰器近亲都是内置函数；它们可以在装饰语法中使用，只是因为它们把一个函数当作参数并且返回一个可调用对象，而原来的函数将与该对象重新绑定。实际上，任何这样的函数都可以通过这种方式使用。
+
+>>> class tracer:
+      def __init__(self,func):
+        self.calls = 0
+        self.func = func
+      def __call__(self,*args):
+        self.calls += 1
+        print('call %s to %s' % (self.calls,self.func.__name__))
+
+    @tracer
+    def spam(a,b,c):
+      return a+b+c
+
+    print(spam(1,2,3))
+    print(spam('a','b','c'))
+
+> 因为spam函数是通过tracer装饰器执行的，所以当原来的函数名spam被调用时，实际上触发的是类中的__call__方法。这个方法会计数并记录该次调用，然后委托给被包装的原来的函数。
+
+子类的super方法指向MRO类树中第一个搜索到的父类，所以可能在多继承的情况下引发错误，但它有如下好处：
+- 在运行时改变类树。当一个父类可能在运行时改变的话，我们就不能将它的名称硬编码在一个调用表达式中，但是我们却可以通过super来分发。
+>>> class X:
+      def m(self):print('X.m')
+>>> class Y:
+      def m(self):print('Y.m')
+>>> class C(X):
+      def m(self):super().m()
+>>> i = C()
+>>> i.m()
+X.m
+>>> C.__bases__ = (Y,)
+>>> i.m()
+Y.m
+
+- 协同多继承方法的分法。当多继承树必须对在多个类中的同名函数中进行分发时，super可以提供一种顺序调用路由的协议。
+
+跟__slots__一样，super通常是一种“要么不用，要么全用”的功能。
+
+## 类陷阱
+
+大多数类的问题通常可以浓缩为命名空间的问题。
+
+1. 修改类属性可能会造成副作用
+
+类和类实例是可变对象。任何在类层次所做的修改都会反映在所有实例中，除非实例拥有自己的修改过的类属性版本。
+>>> class X:
+      a = 1
+>>> I = X()
+>>> I.a
+1
+>>> X.a
+1
+>>> X.a = 2
+>>> I.a
+2
+>>> J = X()
+>>> j.a
+2
+
+2. 修改可变类属性也可能产生副作用
+
+由于类属性被所有实例共享，因此如果一个类属性引用一个可变对象，那么从任何实例在原位置修改该对象都会立刻影响到所有实例。
+
+>>> class C:
+      shared = []
+      def __init__(self):
+        self.perobj = []
+>>> x = C()
+>>> y = C()
+>>> y.shared, y.perobj
+([],[])
+>>> x.shared.append('spam')
+>>> x.perobj.append('spam')
+>>> x.share, x.perobj
+(['spam'],['spam'])
+>>> y.share,y.perobj
+(['spam'],[])
+>>> C.shared
+['spam']
+
+3. 多继承：顺序很重要
+4. 方法和类中的作用域
+
+>>> def generate():
+      class Spam:
+        count =1
+        def method(self):
+          print(Spam.count)
+      return Spam()
+
+    generate().method()
+> 方法def只看得见外层def的局部作用域，但还是无法看见外层类的局部作用域。这就是为什么方法得通过self实例，或类名称去引用外层类语句中定义的方法和其他属性。
+
+## 使用OOP的原因
+- 代码重用
+- 封装
+- 可维护性
+- 一致性
+- 多态
+
+# 异常基础
+
+异常就是可以改变程序控制流程的事件。异常由四类语句进行处理，其中第一类语句有两种变体：
+1. try/except 捕捉由Python或你的代码引起的异常并从中恢复
+2. try/finally 无论异常是否发生，执行清理行为
+3. raise 手动在代码中触发异常
+4. assert 有条件地在程序中代码中触发异常
+5. with/as 实现环境管理
+
+异常的角色：
+1. 错误处理。如果忽略错误，Python默认的异常处理行为将启动：停止程序并打印出错消息。
+2. 事件通知。发出有效状态的信息。
+3. 特殊情况处理。
+4. 终止行为。
+5. 非常规控制流程。异常是一种高级的结构化的"go to"语句，可以将它作为实现奇异控制流程的基础。
+
+**捕捉异常**如果你不想要默认的异常行为，就需要把调用包装在try语句内进行捕捉：
+>>> try:
+      fetcher(x,4)
+    except IndexError:
+      print('got exception')
+
+注意Python中没有任何途径可以回溯到触发异常的代码那里，对于任何因异常而推出运行的函数，Python都会清除其内存。
+
+**引发异常**要手动触发异常，直接执行raise语句：
+>>> try:
+      raise IndexError
+    except IndexError:
+      print('got exception')
+
+**用户定义的异常**通过类来编写，它继承自一个内置异常类，通常是一个名为Exception的类：
+>>> class AlreadyGotOne(Exception):pass
+>>> def grail():
+      raise AlreadyGotOne()
+>>> try:
+      grail()
+    except AlreadyGotOne:
+      print('got exception')
+
+**终止动作**try/finally组合指明“结束时”一定会执行的终止动作：
+>>> try:
+      fetcher(x,3)
+    finally:
+      print('after fetch')
+>>> after()
+after fetch()
+Traceback (most recent call last):
+  File '<stdin>',line1,in<model>
+  ...
+IndexError: string index out of range
+
+> 在实际应用中，try/except组合可用于捕获异常并从中恢复，而try/finally组合则很方便，可以确保无论try块内的代码是否发生了异常，终止动作一定会进行。例如，可以使用try/except组合来捕获从第三方库导入的代码所引发的错误，然后用try/finally组合来确保关闭文件或者终止服务器连接的调用一定会执行。
+
+try语句的工作方式：
+- 如果try代码块语句执行时发生了一个异常，Python就跳回try，把引发的异常对象赋值给as分句后面的变量名，然后执行第一个符合引发异常的except分句下面的语句。
+- 如果异常发生在try代码块内，但却不能跟当前try语句的任何except分句描述的名字相匹配，那么异常就会向上传递到程序之前最近依次进入的能够匹配的try中。
+- 如果try首行底下执行的语句没有发生异常，Python就会执行else行下的语句，之后控制权会从整个try语句的后面继续。
+- 换句话说，except分句会捕捉try代码块执行时发生的任何能匹配的异常，而else分句当且仅当在try代码块的执行不发生异常时才会运行。空except分句能够匹配所有的异常。
+
+## try语句分句形式
+1. except：     捕捉所有异常类型
+2. except name: 只捕捉指定的异常
+3. except name as value:  捕捉所列异常并将该异常实例赋值给名称value
+4. except (name1,name2):  捕捉任何列出的异常
+5. except (name1,name2) as value: 捕捉任何列出的异常，并将异常实例元组赋值给名称value
+6. else:        如果没有引发异常，就会运行
+7. finally:     总是在退出try语句时运行此代码块
+
+空except尽管用起来方便，但也可能捕捉到和程序代码无关、意料之外的系统异常，并且可能无意中拦截了属于其他处理程序的异常。例如，Python中的系统退出调用，就是通过触发异常来实现的。
+
+通过捕获一个名为Exception的异常具有和空except相同的效果，但它忽略与系统退出相关的异常：
+>>> try:
+      action()
+    except Exception:
+      ...
+
+**raise语句**的组成包括raise关键字，后面跟着可选的要触发的异常类或者异常类的一个实例：
+1. raise instance
+2. raise class
+3. raise
+
+以下两种形式等价：
+>>> raise IndexError # Class (instance created)
+>>> raise IndexError # Instnace (created in statement)
+
+在程序运行的任意时刻，至多只能有一个处于激活状态的异常实例。一旦异常在程序中某处被一条except分句捕获，它就“死掉了”，除非它被另一个raise语句或错误再次引发。
+
+raise语句拥有一个可选的from分句：
+>>> raise newexception from otherexception
+当from分句被使用在一个显式raise请求中的时候，from后面跟的表达式指定了另一个异常类或实例，该异常会附加到新引发的异常的__cause__属性。
+>>> try:
+      try:
+        raise IndexError()
+      except Exception as E:
+        raise TypeError() from E
+    except Exception as E:
+      raise SyntaxError() from E
+
+Traceback (most recent call last):
+  File "<stdin>", line3, in <module>
+IndexError
+
+The above exception was the direct cause of the following exception:
+Tracebace (most recent call last):
+  File "<stdin>", line 5, in <module>
+TypeError
+
+The above exception was the direct cause of the following exception:
+Trance (most recent call last):
+  File "<stdin>", line 7, in <module>
+SyntaxError: None
+
+**assert语句**是出于调试目的的一种特殊情况，可视为条件式的raise语句。该语句形式为：
+>>> assert text,data
+如果test计算结构为假，就会引发异常data项作为异常构造函数的参数。
+
+>>> def f(x):
+      assert x<0, 'x must be negative'
+      return x**2
+
+**with/as上下文管理器**。这个语句的目的是为了配合上下文管理器对象一起工作，它能够支持一种新的基于方法的协议，这同迭代工具和迭代协议工作方式的内在思想一致。简而言之，with/as语句的目的是作为常见try/finally用法模式的替代方案，和try/finally不同的是，with语句是基于一个对象协议，该协议用于指定在一段代码块前后运行的动作。
+
+with语句的基本格式：
+>>> with expression [as variable]:
+      with-block
+这里的expression要返回一个支持上下文管理协议的对象。如果可选的as分句存在时，此对象的返回值将被赋给名称variable。
+
+>>> with open(r'C:\misc\data') as myfile:
+      for line in myfile:
+        print(line)
+      ...
+
+with语句的实际工作方式：
+1. 首先计算表达式，计算所得的对象称为上下文管理器，它必须有__enter__和__exit__方法。
+2. 上下文管理器的__enter__方法会被调用。如果as分句存在，其返回值会赋值给as分句中的变量，否则返回值就被直接丢弃。
+3. 嵌套的with代码块被执行。
+4. 如果with代码块引发异常，__exit__(type,value,traceback)方法就会被调用。它们与sys.exc_info调用所返回的三个值相同。如果此方法返回值为假，则异常会被重新引发；否则，异常会终止。一般情况下，异常是应该被重新引发的，这样才能传递到with语句之外。
+5. 如果with代码块没有引发异常，__exit__方法依然会被调用，其type、value以及tranceback参数都会传入None对象。
+
+>>> class TranceBlock:
+      def message(self,arg):
+        print('running',arg)
+      def __enter__(self):
+        print('starting with block')
+        return self
+      def __exit__(self,exc_type,exc_value,exc_tb):
+        if exc_type is None:
+          print('exited normally\n')
+        else:
+          print('raise an exception!' + str(exc_type))
+          return False
+    if __name__ = '__main__':
+      with TraceBack() as action:
+        action.message('test 1')
+        print('reached')
+
+      with TraceBloc() as action:
+        action.message('test 2')
+        raise TypeError
+        print('not reached')
+      
+starting with block
+running test 1
+reached
+exited normally
+
+starting with block
+running test 2
+raise an exception! <calss 'TypeError'>
+Traceback (most recent call last):
+  File "withas.py", line 20, in <module>
+    raise TypeError
+  TypeError
+
+with语句也可以通过逗号语法指定多个上下文管理器：
+>>> with open('data') as fin, open('res', 'w') as fout:
+      for line in fin:
+        if 'some key' in line:
+          fout.write(line)
+
+# 异常对象
+
+基于类的异常可以让你识别异常类别。**类异常**是根据父类关系进行匹配的：只要except分句列举了异常实例的类名或任何父类名，引发的异常就会匹配该分句。
+
+编写异常类：
+>>> class General(Exception):pass
+    class Specific1(General):pass
+    class Specific2(General):pass
+
+    def raiser0():raise General()
+    def raiser1():raise Specific1()
+    def raiser2():raise Specific2()
+
+>>> for func in (raiser0,raiser1,raiser2):
+      try:
+        func()
+      except General as X:
+        print('caught: %s' % X.__class__)
+
+caught: <class '__main__.General'>
+caught: <class '__main__.Specific1'>
+caught: <class '__main__.Specific2'>
+
+Python将内置异常组织为层次结构来支持各种捕捉模式：
+- BaseException：顶层根，打印和构造函数默认值。异常的顶级根父类。这个类提供子类可继承的默认打印和状态保持行为。
+- Exception：用户定义异常的根。BaseException类的一个直接子类，并且是除系统退出事件类外，所有其他内置异常的父类。
+- ArithmeticError：数值错误的根。Exception的子类，所有数值错误的父类。它的子类识别具体的数值错误：overflowError、ZeroDivisionError以及Floating PointError
+- LookupError：索引错误的根。Exception的子类，序列和映射错误（IndexError和KeyError），以及一些Unicode查找错误的父类类别。
+
+# 异常的设计
+
+当异常发生时，Python会回到最近进入，具有相符except分句的try语句。因为每个try语句都会留下标识，Python可检查栈的标识，从而跳回到较早的try。这种处理程序的嵌套化，就是我们所谈到的异常向上传递至较高的处理程序的意思：这些处理程序就是在程序执行流中较早进入的try语句。
+
+异常的传递基本上就是回到处理先前进入但尚未离开的try。只要控制权碰到相符except分句，传递就会停止，而通过finally分句时却不会。
+
+跳出多重嵌套循环。在这种角色下，raise的作用就跟“go to”一样，而except分句和异常的名称则充当了"go to"中的程序标签。但你只能从包装于try内部的代码中以这种方式跳出。
+>>> class Exitloop(Exception):pass
+>>> try:
+      while True:
+        while True:
+          for i in range(10):
+            if i > 3: raise Exitloop
+            print('loop3: %s' % i)
+          print('loop2')
+        print('loop1')
+    except Exitloop:
+      print('continuing')
+
+loop3:0
+loop3:1
+loop3:2
+loop3:3
+continuing
+>>> i
+4
+
+sys.exc_info通常允许一个异常处理程序获取对最近引发的异常的访问。
+>>> try:
+      ...
+    except:
+      # sys.exc_info()[0:2] are the exception class and instance
+如果没有正在处理的异常，"sys.exc_info()"这一调用将返回一个包含三个None值的元组。否则，将会返回“(type,value,traceback)”:
+- type是正在处理异常的类型
+- value是被引发的异常类实例
+- traceback是一个跟踪对象，代表异常最初发生时所调用的栈，同时被traceback模块用来产生错误信息。
+
+总的来说，Python的异常在使用上很简单。异常背后真正的艺术在于，确定except分句要多具体或多通用，以及try语句中要包装多少代码。
+
+Python提供了一套层次化的工具集：
+- 内置工具。像字符串、列表以及字典这些内置类型，会让编写简单的程序更为迅速。
+- Python的扩展工具。对于更重要的任务，你可以编写自己的函数、模块以及类来扩展python。
+- 已编译的扩展工具。Python可以使用C或C++这样的外部语言所编写的模块来扩展。
+
+**分析器profiler**。为了真正把代码中的性能瓶颈隔离出来，你需要添加带有time或timeit模块的计时逻辑，或者在profile模块下运行代码。
+
+**交付选项**。打包Python程序的常见工具，如py2exe、PyInstaller等。
+
+# Unicode和字节串
+
+**字符集**是将整数编码赋值给单独字符的标准，这样字符就可以在计算机内存中表示。
+
+ord函数给出一个字符的二进制识别值，而chr函数返回给定整数编码值的对应字符：
+>>> ord('a')
+97
+>>> hex(97)
+'0x61'
+>>> chr(97)
+'a'
+
+**编码**就是把一个unicode字符转换为字节序列以及从一个字节序列提取字符串的规则。
+- 编码是根据一个期望的编码名称，把一个字符串翻译为其原始字节形式的过程。
+- 解码是根据其编码名称，把一个原始字节串翻译为字符形式的过程。
+
+编码实际上只有当文本在文件和其他媒介中被存储、或外部转移的时候才适用。在内存中，Python总是以编码中立的格式存储解码后的文本字符串。
+
+**文本工具**。字符串内容和长度实际与Unicode码点一致，码点是识别字符的序数。例如内置的ord函数返回一个字符的Unicode码点序数。码点序数不一定是ASCII编码，它可能适合也可能不适合用一个单独8位字节值来表示。len函数返回字符个数，而不是字节个数。
+
+**本文尺寸**。内存中Python可能会为每个字符分配1、2或4个字节。编码过程大部分与文件和传输有关。一旦载入为Python字符串，内存中的文本就没有任何“编码”的概念，它们仅仅是一般化存储的Unicode字符序列。
+
+Python中的3中字符串对象类型：
+1. str表示解码的Unicode文本（包括ASCII）。一个不可变的字符（不一定是字节）序列。
+2. bytes表示二进制数据（包括编码的文本）。一个表示绝对字节值的8位证书的不可变序列。
+3. bytearray，一种可变的bytes类型。是bytes类型的一个变体，它是可变的并且支持原位置修改。
+
+**文本文件**。当一个文件以文本模式打开的时候，读取其数据会自动将其内容解码，并且将解码的内容返回为一个str；写入内容需要一个str，并且在将其传输到文件之前自动编码它。
+
+**二进制文件**。通过向内置open调用的模式字符串参数添加一个b（只能小写），将以二进制模式打开一个文件，此时读取其数据不会以任何方式解码它，而是直接返回其未经修改的原始内容，并将其作为一个bytes对象；写入二进制数据类似地需要一个bytes对象，并且将其未经修改地传送到文件中。
+
+最终以何种模式打开一个文件，将决定脚本用何种类型的对象来表示其内容：
+- 如果正在处理图像文件、经网络传输的数据、必须解压的打包二进制数据，或者一些设备数据流，则使用bytes和二进制模式文件处理它更合适。如果想更新数据而不在内存中产生其副本，也可以使用bytearray。
+- 如果要处理的内容本质是文本化的，例如程序输出、HTML、电子邮件内容或CSV或XML文件，则可能要使用str和文本模式文件。
+
+所有字符串字面量形式'xxx'、"xxx"和三引号字符块，都产生一个str；在它们任何一种前面添加一个b或B，则会创建一个bytes。
+>>> B = b'spam'
+>>> s = 'eggs'
+>>> type(B),type(s)
+(<class 'bytes'>,<class 'str'>)
+>>> B
+b'spam'
+>>> S
+'eggs'
+
+bytes对象实际上是一个短整数序列，尽管它尽可能地将自己的内容打印为字符：
+>>> B[0],s[0]
+(115,'e')
+
+注意在Unicode字符串字面量中，十六进制转义和Unicode转义都表示一个Unicode码点值，而不是字节值。十六进制转义x要求恰好两个数位（用于8位的码点值），而Unicode转义的u和U分别要求恰好4个和8个十六进制数位。
+
+Python允许特殊的字符以十六进制和Unicode转义的方式编码到str字符串中，但是只能以十六进制转义的方式编码到bytes字符串中。
+>>> S = 'A\xC4B\xE8C'
+>>> S
+'AABEC'
+>>> S = 'A\u00C4B\U000000E8C'
+>>> S
+'AABEC'
+>>> B = b'A\xC4B\xE8C'
+>>> B
+b'A\xc4B\xe8C'
+>>> B = b'A\u00C4B\U000000E8C'
+>>>b
+b'A\\u00C4B\\U000000E8C'
+
+Python默认地使用UTF-8编码。改变编码需要在文件头两行注明：
+# -*- coding: latin-1 -*-
+
+环境变脸PYTHONIOENCODING用来在标准（输入、输出和错误）流中设置用于文本的编码。
+
+# 被管理的属性
+
+对象的属性是大多数Python程序的核心，它们是我们经常存储供脚本处理的相关实体信息的地方。通常属性只是对象的名称。
+
+在属性被访问时自动运行代码，这是**被管理的属性**所扮演的最重要的角色之一。
+
+4种访问器技术：
+1. __getattr__和__setattr__方法，用于把未定义的属性获取和所有的属性赋值路由到通用的处理方法。
+2. __getattr__方法，用于把所有属性获取都路由到一个泛化的处理方法。
+3. property内置函数，用于把特定属性访问路由到访问（get）和设置（set）处理函数。
+4. 描述符协议，用于把特定属性访问路由到具有任何访问和修改处理方法的类的实例，这也是像property和slot这样的工具的基础。
+
+**property协议**允许我们把一个特定属性的获取、设置和修改操作指向我们所提供的函数或方法，使得我们能够插入在属性访问时自动运行的代码，或是拦截属性的删除，并且如果愿意的话还可为属性提供文档。
+
+一个property管理一个单个的、特定的属性；尽管它不能广泛地捕获所有的属性访问，但它允许我们控制访问和赋值操作，并且允许我们自由地把一个属性从简单的数据改变为一个计算，而不影响已有的代码。property和描述符有很密切的联系；事实上property基本上及时描述符的一种受限制的形式。
+
+通过把一个内置函数的结果赋给一个类属性来创建一个property：
+>>> attribute = property(fget,fset,fdel,doc)
+可以给fget传入一个函数用于拦截属性访问，给fset传入一个函数用于属性赋值，给fel传入一个函数用于属性删除。doc参数用于接收该属性的一个文当然字符串。
+
+>>> class Person:
+      def __init__(self,name):
+        self._name = name
+      def getName(self):
+        print('fetch...')
+        return self._name
+      def setName(self,value):
+        print('change...')
+        self._name = value
+      def delName(self):
+        print('remove...')
+        del self._name
+      name = property(getName,setName,delName,"name property docs")
+>>> bob = Person('Bob Smith')
+    print(bob.name)
+    bob.name = 'Robert Smith'
+    print(bob.name)
+    del bob.name
+
+fetch...
+Bob Smith
+change...
+fetch...
+Robert Smith
+remove...
+
+**描述符协议**允许我们把一个特定属性的获取、设置和删除操作指向我们提供的一个单独类对象的方法。描述符也管理一个单个的、指定的属性。
+
+>>> class Descriptor:
+      "docstring goes here"
+      def __get__(self,instance,owner):...
+      def __set_(self,instance,value):...
+      def __delete__(self,instnace):...
+
+所有带有这些方法(__get__、__set__和__delete__)的类都可以看作描述符，并且当它们的一个实例被赋值给另一个类的属性的时候，它们的这些方法就成为特殊的。也就是说，当访问属性的时候会自动调用这些方法。
+
+与property不同，省略一个__set__意味着允许这个被赋值了描述符的属性名称在类的任意一个实例中可以通过赋值被重新定义，从而隐藏了描述符。要使得一个属性是只读的，必须定义__set__来捕获赋值并引发一个异常。__set__被称为数据描述符，它较其他通过正常继承规则而定位的属性拥有优先权。
+
+>>> class Name:
+      "name descriptor docs"
+      def __get__(self,instance,owner):
+        print('fetch...')
+        return instnace._name
+      def __set__(self,instance,value):
+        print('change...')
+        instance._name = value
+      def __delete__(self,instance):
+        print('remove...')
+        del instance._name
+    
+    class Person:
+      del __init__(self,name):
+        self._name = name
+      name = Name()
+
+>>> bob = Person('Bob Smith')
+    print(bob.name)
+    bob.name = 'Robert Smith'
+    print(bob.name)
+    del bob.name
+fetch...
+Bob Smith
+change...
+fetch...
+Robert Smith
+remove...
+
+描述符类实例是一个类属性，因此被客户类和所有实例和所有子类继承。
+
+property内置函数只是创建描述符的一种简便方式。
+
+描述符是如何被用于实现Python的slot扩展的：实例属性字典在创建用于拦截slot名称访问的、将这些名称映射到实例的连续存储空间的、位于类层级的描述符时被忽略了。
+
+__getattr__和__getattribute__运算符重载方法提供了拦截实例属性获取的另一种方法。
+__getattr__针对未定义的属性运行。因为它能只为不存储在实例中或是不继承自它的类的属性运行，所以它的用法也相对直接。
+__getattribute__针对所有的属性运行。因为它是涵盖一切的，所以在使用它的时候，必须小心避免通过把属性访问传递给父类而导致递归循环。
+
+与property和描述符不同，这些方法属于Python通用的运算符重载协议的一部分，它们是类的特殊命名的方法，可以被子类继承，并且当在隐式的内置操作中使用实例的时候被自动调用。
+
+# 装饰器
+
+**装饰**是为函数和类指定管理或扩增代码的一种方式。装饰器本身采取可调用对象的形式（如函数），并处理其他可调用对象。
+
+**函数装饰器**在函数定义的时候进行名称重绑定，提供一个逻辑层来管理函数和方法，以及管理随后对他们的调用。
+
+**类装饰器**在类定义的时候进行名称重绑定，提供一个逻辑层来管理类，以及管理随后调用它们所创建的实例。
+
+简而言之，装饰器提供了一种方法，在函数和类定义语句结束时插入自动运行的代码。
+
+自动运行的代码可用来扩展对函数和类的调用，它通过安装随后被调用的包装器（即代理）对象来实现这一点：
+- 调用代理。函数装饰器安装包装器对象，以在需要的时候拦截之后的函数调用并处理它们，通常将调用继续传递到原始函数以执行管理好的动作。
+- 接口代理。类装饰器安装包装器对象，以在需要的时候拦截之后的实例创建调用并处理它们，通常将调用继续传递到原始类以创建一个管理好的实例。
+
+包装器并非使用装饰器的唯一办法：
+- 函数管理器也可以用来管理函数对象，而不仅仅是管理随后对它们的调用，例如把一个函数注册为一个API。
+- 类管理器也可以用来直接管理类对象，而不仅仅是管理实例创建的调用，例如用新的方法扩展类。
+
+换句话说，函数装饰器可以用来管理函数调用和函数对象，类装饰器可以用来管理类实例和类自身。
+
+从纯技术的视角来看，并不是严格需要装饰器：我们往往可以使用简单的辅助函数调用或其他的技术来实现它们的功能。装饰器为这样的任务提供了一种**显式的语法**，它使得意图更加明确，能够最小化繁冗的扩展代码，并且有助于确保正确的API使用。
+
+**函数装饰器**大体上是一种语法糖：在def语句结束时通过另一个函数来运行这个函数，把最初的函数名称重新绑定到返回的结果。
+
+装饰器在定义函数或方法的def语句的前一行编写，并且它由@符号以及紧随其后的对于原函数的一个引用组成：
+>>> @decorator
+    def F(arg):
+      ...
+    F(99)
+
+装饰器自身是一个返回可调用对象的可调用对象。实际上，装饰器可以是任意类型的可调用对象，并且返回任意类型的可调用对象：函数和类的任何组合都可以使用。
+>>> def decorator(F):
+      # save or use function F
+      # return a different callable: nested def, call with __call__,etc.
+    @decorator
+    def func():...
+
+装饰器返回了一个包装器，包装器把最初的函数保持在一个外层作用域中：
+>>> def decorator(F):
+      def wrapper(*args):
+        # use F and args
+        # F(*args) calls original function
+      return wrapper
+    
+    @decorator
+    def func(x,y)
+      ...
+    func(6,7)
+当随后调用名称func的时候，它实际调用了decorator所返回的wrapper函数；包装器函数可能会运行最初的func，因为它在外层作用域中仍然可以使用。当以这种方式编程的时候，每个被装饰的函数都会产生一个新的作用域来保持状态。
+
+>>> class decorator:
+      def __init__(self,func):
+        self.func = func
+      def __call__(self,*args):
+        # use self.func and args
+        # self.func(*args) calls original function
+    
+    @decorator
+    def func(x,y):
+      ...
+    func(6,7)
+
+类装饰器语法：
+>>> @decorator
+    class C:
+      ...
+    x = C(99)
+
+装饰器的返回结果就是随后创建实例时所运行的。
+>>> def decorator(C):
+      # process class C
+      return C
+
+    @decorator
+    class C:...
+
+插入一个包装器层来拦截随后的实例创建调用，可返回一个不同的可调用对象：
+>>> def decorator(C):
+      # save or use class C
+      # return a different callable: nested def, class with __call__,etc.
+    
+    @decorator(C):
+    class C:...
+
+装饰器嵌套：
+>>> @A
+    @B
+    @C
+    def f(...):
+      ...
+上边运行起来与下面代码相同：
+>>> def f(...):
+      ...
+    f = A(B(C(f)))
+
+装饰器参数：
+>>> @decorator(A,B)
+    def F(arg):
+      ...
+    F(99)
+等于下面
+>>> def F(arg):
+      ...
+    F = decorator(A,B)(F)
+    F(99)
+
+如果你想要装饰器在简单函数和方法上都有效，则最好使用基于嵌套函数的编程模式，而不是带有调用拦截的类，以避免单一的self实例参数既是包装器类实例，又是主题类实例了的困境。
+
+# 元类
+
+元类只是扩展了装饰器的代码插入模型。函数和类装饰器允许我们拦截并扩展函数调用以及类实例创建调用。元类允许我们拦截并扩展类的创建——它们提供了一种在一条class语句结束时运行插入额外逻辑的API。同样，它们提供了一种通用协议来管理程序中的类对象。
+
+元类为各种没有它难以实现或不可能实现的编码模式打开了大门，并且对于那些追求编写灵活的API或编程工具供其他人使用的程序员来说尤其有用。
+
+元类是整个Python语言中最高级的话题。学习元类能够帮你解开Python类机制的神秘面纱。
+
+## 工具大家庭
+- 内省属性及工具。像__class__和__dict__这样的特殊属性允许我们查看Python对象的内部实现，以便更广泛地处理它们，例如列出对象的所有属性，显式一个类名等。当要支持slot等虚拟属性的时候，诸如dir和getattr的工具能够扮演与__class__和__dict__相似的角色。
+- 运算符重载方法。像__str__和__add__这样特殊命名的方法，能在类中用于编写拦截并提供作用于类实例的内置操作的行为，例如打印、表达式运算符等。
+- 属性拦截方法。另一组运算符重载方法提供了一种在实例上广泛地拦截属性访问的方法：__getattr__、__setattr__、__delattr__和__getattribute__允许包装器类（也成为代理类）来插入自动运行的代码，这些代码可以检验属性请求并且将它们委托给内前对象。
+- 类property。内置函数property允许我们把代码和指定的类属性关联起来，当获取、赋值或删除该属性的时候就自动运行相应代码。
+- 类属性描述符。property只是定义在访问时自动运行函数的属性描述符的一种简洁方式。描述符允许我们在单独的类中编写__get__、__set__和__delete__处理程序方法，并当赋值给该类的一个实例的属性后，在被访问时自动运行它们。
+- 函数和类装饰器。装饰器特殊的@callable语法允许我们添加当调用一个函数或创建一个类实例的时候自动运行的逻辑。
+- 元类。元类允许我们在一条class语句的末尾，插入当创建一个类对象的时候自动运行的逻辑。尽管跟类装饰器很相似，但元类机制不会把类名重新绑定到一个装饰器调用对象的结果，而是把类本身的创建指向特定的逻辑。
+
+换句话说，元类终究只是定义自动运行代码的另外一种方式。通过前面列出的这些工具，Python为我们提供了在各种上下文中插入逻辑的方法——在运算符计算时、属性访问时、函数调用时、类实例创建时，以及现在又包括了类对象创建时。
+
+- 尽管类装饰器常常被用来管理实例，它们也可以用来管理类，这点跟元类很像。
+- 尽管元类被设计用来扩展类的构建，它们也常常像装饰器那样插入代理来管理实例。
+
+事实上，元类和类装饰器之间的额区别主要是：它们在创建时出现的时间点不同。类装饰器在被装饰类创建完成之后运行。因此它们通常被用来添加在实例创建的时候运行的逻辑。当它们确实给一个类提供行为时，这通常是通过改变或者代理达成的，而不是某种更直接的关系。
+
+相比之下，元类则在类创建的过程中就运行了，来创建并返回新的客户类。因此它们通常被用来管理或扩展类，并且甚至提供了一种通过更直接的实例关系的方式来处理那些用它们创建的类。
+
+元类：
+1. 提供了一种更为正规和显式的结构。
+2. 有助于确保应用程序员不会忘记根据一个API需求来扩展它们的类。
+3. 通过将类定制逻辑分解到元类这个单独的位置中，避免了代码冗余性以及随之而来的代码维护成功。
+
+元类所要做的事情：通过声明一个元类，告诉Python把类对象的创建路由到我们所提供的另一个类：
+>>> def extra(self,arg):...
+    calss Extras(type):
+      def __init__(Class,classname,superclasses,attributedict):
+      if required():
+        Class.extra = extra
+    
+    class Client1(metaclass = Extras):...
+    class Client2(metaclass = Extras):...
+    class Client3(metaclass = Extras):...
+
+    X = Client1()
+    X.extra
+
+实例从类创建，类从类型（type）创建。元类是type的子类。
+1. type是产生用户定义类的一个类。
+2. 元类是type类的子类。
+3. 类对象是type类的实例或子类。
+4. 实例对象产生自一个类。
+
+换句话说，为了控制创建类以及扩展其行为的方式，我们所需做的只是**指定一个用户定义的类创建自一个用户定义的元类**，而不是常规的type类。
+
+继承会搜索实例和类的命名空间字典，但是类也可以从它们的类型获得行为，而这些类型却不会暴露在正常的继承搜索中。
+
+**class语句协议**：
+当Python遇到一条class语句时，会运行其内嵌的代码块以创建其属性所有在内嵌代码块的顶层中赋值的变量名都成为最终的类对象中的属性。这些名称通常是内嵌的def所创建的方法函数，但它们也可以是通过赋值创建的被所有实例共享的类数据的任意属性。
+从技术上讲，Python遵循一个标准的协议来使得这能发生：在一条class语句的末尾，并且在运行了一个对象与类局部作用域的命名空间字典中的所有内嵌代码之后，Python会调用type对象来创建class对象：
+>>> class = type(classname,superclasses,attributedict)
+type对象定义了一个__call__运算符重载方法，当type对象被调用的时候，该方法运行两个其他的方法：
+>>> type.__new__(typeclass,classname,superclasses,attributedict)
+>>> type.__init__(class,classname,superclasses,attributedict)
+__new__方法创建并返回了新的class对象，然后__init__方法初始化了新创建的对象。由于这个type调用在class语句的末尾被自动运行，它是元类用来定制类的理想钩子，几拦截这个调用的一个定制子类来替换默认的type。
+
+元类声明：
+class  Spam(metaclass=Meta):...
+class Spam(Eggs,metaclass=Meta):... #Spam继承自Eggs，但也是Meta元类的一个实例并且由Meta创建。
+
+元类声明后，运行在class语句末尾来创建class对象的调用被修改为调用元类而不是默认的type:
+>>> class = Meta(classname, superclasses, attributedict)
+
+元类是用常规的class语句和语法来编写的，它们只是继承自type的类。唯一的区别是，Python在一个class语句的末尾自动调用它们，而且它们必须遵循type父类所预期的那些接口。
+
+最简单的元类：
+>>> class Meta(type):
+      def __new__(meta,classname,supers,classdict):
+        #run by inherited type.__call__
+        return type.__new__(meta,classname,supers,classdict)
+
+定制建构和初始化。元类也可以接入__init__协议，被类型对象的__call__调用。通常，__new__创建并返回了类对象，而__init__初始化了作为一个参数被传入的已经创建了的类。
+>>> class MetaTwo(type):
+      def __new__(meta,classname,supers,classdict):
+        print('In MetaTwo.new:',classname,supers,classdict,sep='\n...')
+        return type.__new__(meta,classname,supers,classdict)
+      def __init__(Class,classname,supers,classdict):
+        print('In MetaTwo init:',classname,supers,classdict,sep='\n...')
+    class Eggs:
+      pass
+>>> print('making class')
+class Spam(Eggs,metaclass=MetaTwo):
+  data = 1
+  def meth(self,arg):
+    return self.data+arg
+>>> print('making instance')
+    X= Spam()
+    print('data:',X.data,X.meth(2))
+
+Making class
+In MetaTwo.new:
+...Spam
+...(<class '__main__.Eggs'>,)
+...{'data':1,'meth':<function Spam.meth at 0x02234234>,'__module__':'__main__'}
+In MetaTwo.init:
+...Spam
+...(<class '__main__.Eggs'>,)
+...{'data':1,'meth':<function Spam.meth at 0x02923423>,'__module__':'__main__'}
+...init class object:['__qualname__','data','__module__','meth','__doc__']
+making instance
+data:1 3
+
+元类模型：
+- 元类继承自type类
+- 元类声明会被子类继承
+- 元类属性不会被类的实例继承。因为类是元类的实例，所以元类中定义的行为适用于类，但不适用于类随后的实例。元类不包含在普通实例的继承查找中。
+- 元类属性会被类获得。
+
+类通过自身的__class__链接来获取元类属性。实例搜类树中按照MRO顺序排列的每个类的__dict__。
+
+Python的（简化）继承算法：
+继承使用了两种不同但彼此相似的查找方式，而且继承是基于MRO的。因为__bases__被用于在创建类的时候建立__mro__顺序，而且因为一个类的__mro__包括了它本身。查到一个显式属性名的规则：
+1. 从一个实例I出发，搜索该实例，然后搜索它的类，之后搜索它的所有父类，通过使用：
+   1. 实例I的__dict__
+   2. 所有在I的__class__中的__mro__找到的类的__dict__，遵循从左到右的顺序。
+2. 从一个类C出发，搜索该类，然后搜索它的所有的父类，之后搜索它的元类树，通过使用：
+   1. 所有在C的__mro__中类的__dict__，遵循从左到右的顺序。
+   2. 所有在C的__class__中的__mro__找到的元类的__dict__，遵循从左到右的顺序。
+3. 在规则1和规则2中，步骤b中出现的数据描述符具有优先权。
+4. 在规则1和规则2中，对于内置操作跳过步骤a并从步骤b开始搜索。
+
+一些成为数据描述符的描述符（也就是那些定义了__set__方法来拦截赋值的描述符）拥有优先级，因此它们的名字会覆盖其他继承源的名称。
+
+内置操作不会遵循这些规则。实例和类都会跳过内置操作，这可以认为是区别于一般或显式名称继承的特殊情况。
+
+显式名称的搜索从类本身开始，但内置操作从类的“类”开始，也就是类的元类，默认是type。
+
+所有通过“.”号+属性进行的运算，都是显式属性。用[]完成的索引，是内置操作。
+
+所有的类都继承自object，包括默认的type元类。
+
+# 一切美好的事物
+
+更高级的程序员喜欢更高级的工具，并倾向于忘却它们对其他程序员的影响。
