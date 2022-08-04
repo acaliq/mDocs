@@ -30,3 +30,5 @@ bracket
 ## exclamation
 - n.   /ˌekskləˈmeɪʃn/
 - a short sound, word or phrase spoken suddenly to express an emotion. Oh! , Look out! and Ow! are exclamations . 感叹；感叹语；感叹词
+
+## 
