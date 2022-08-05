@@ -325,3 +325,9 @@ bracket
 
 ## 我们使用(not) + 形容词 + enough to + 动词描述某物或某人是否具有某种足够的性质或品质做某事。
 - 我们使用(not) + 形容词 + enough for + 名词描述某物或某人是否具备容纳其他人或物的能力。
+
+## Something fascinating is very interesting and attractive. 
+- She finds this painting really fascinating. She can't take her eyes off it.
+
+## The pros and cons are the advantages and disadvantages of something, especially something that you are considering doing.
+- pros 表示advantages的意思，cons表示disadvantages的意思。
