@@ -331,3 +331,19 @@ bracket
 
 ## The pros and cons are the advantages and disadvantages of something, especially something that you are considering doing.
 - pros 表示advantages的意思，cons表示disadvantages的意思。
+
+## To think outside the box means to think differently and creatively, instead of using old or traditional ideas.
+
+## To take credit means to accept honor for an achievement, even when the achievement isn't yours.
+
+## A commitment is somehting that you have promised to do, or that you have to do. 
+- She can't go to the party tonight because she has many other commitments.
+
+## To cut down on something means to reduce the amount of it.
+- We should try to cut down on plastic packaging in order to protect the environment.
+
+## To stress somebody out means to make someone feel very nervous and worried.
+
+## To overwhelm means to be too much to deal with.
+
+##
