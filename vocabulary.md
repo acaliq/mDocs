@@ -346,4 +346,91 @@ bracket
 
 ## To overwhelm means to be too much to deal with.
 
-##
+## a viral video
+- Viral的原意是“病毒的”，由virus延伸而来，这里形容一个视频，意思就是病毒式疯传的。
+
+## 千载难逢用英文怎么说
+- deal of the century
+- chance of a lifetime
+- one-in-a-million chance
+- once in a blue moon
+
+## When you finalize something, you reach or agree upon the finished version of it.
+- finalize，敲定。
+
+## To dress for the occasion means to wear something suitable for an event, party or special occasion.
+
+## cake topper
+- topper 顶部的东西
+
+## fidelity 忠诚，忠贞
+
+## 和穿着有关的英语
+- dress for the occasion 穿着得体
+- dress up
+- dress-down Friday
+- dressed (up) to the nines
+- dressed to the teeth
+
+## She is up for the job. 
+-She is being considered for the job.
+
+## If something is infurating, it makes you very angry or annoyed.
+- infuriating 使人极为生气的
+
+## To style means to design or arrange something in a particular way.
+
+## The report is biased towards this team. It unfairly prefers this team.
+
+## 两个口语中常用的，表示强调的副词。
+- Way 表示“过度，大幅（尤其用于强调事件或空间中的程度或距离）”。
+  - This is way too big.
+- Absolutely 表示“极其”。
+  - The food is absolutely delicious.
+
+## Really? I'm intrigued.
+- 真的吗？我很感兴趣。
+
+## Yeah, that's a bit tricky.
+- 是的，这有点棘手。
+
+## Our next guest is an interior designer who just won a prestigious arward.
+- prestigious 有威望的，声誉高的
+
+## Well, as you can see, the design is in the modern style, with very crisp lines and minimal accessories.
+- crisp 清晰明了的
+
+## 我们常常在副词后使用介词短语来补充信息，（比如：in the morning , after I finish school, on the sixth floor等）
+- I've always had a lot of support, especially **from my parents**.
+
+## The architecture is fabulous.
+- fabulous 极好的，绝佳的
+
+## There's no time like the present.
+- No time like the present.
+- When you say "There's no time like the present", you are encouraging someone to take action now, instead of waiting. 择日不如撞日，今天就干吧。
+
+## Set means prepared and ready.
+- Are you all set for the trip?
+
+## To jam means to play music with other people, usually in an informal way.
+
+## I want to get a band together in the shortest amount of time possible.
+- We can use words called post-modifiers, like "ever" and "possible", with superlatives (adjectives+ -est) to intensify or exaggerate meaning. 
+- 我们可以在形容词最高级的后面，用后修饰词来增强或扩展含义。
+- This has been the most difficult semester ever!
+- losing all our money is the morst possible scenario.
+
+## To make an appearance means to appear or arrive at an event or a gathering for a short amount of time.
+
+## 当我们在形容词最高级和它所修饰的名词之间加上一些特定的形容词时，可以给我们想说的话加上更多的含义。
+- 只有一小部分形容词可以放在形容词最高级和名词之间。possible是最常见的恶一个，还有remaining, potential, available.
+
+## Beatlemania
+- 这是一个复合词：词缀-mania意为“狂热”。该词意思是披头士热潮。
+
+## Music Idioms in English 和音乐相关的俚语
+- sing a different tune 改变看法，转变态度
+- drum...into one's head 一遍遍地重复，直到某人学会某事
+- face the music 承担自己行为的后果；接受批评或惩罚
+
