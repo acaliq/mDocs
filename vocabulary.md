@@ -434,3 +434,29 @@ bracket
 - drum...into one's head 一遍遍地重复，直到某人学会某事
 - face the music 承担自己行为的后果；接受批评或惩罚
 
+## To green-light
+- 可以将green light用作名词，表示对某事的许可
+- The studio green-lit the film with a budget of ten million US dollars.
+
+## I fit in with my new colleagues straight away.
+- 我很快就和我的新同事们打成一片。
+
+## day in and day out
+- 日复一日。
+
+## To break something down
+- 把某事掰开了、揉碎了讲解
+
+## to pull something off
+- 完成，实现
+
+## robbing Peter to pay Paul
+- 拆东墙补西墙
+
+## Environmental/ecological footprint
+- footprint 比喻人对环境的影响
+
+## To transcend
+- 表示超出一般的界限，是一个正面色彩的词。
+- Love transcends anything else.
+
